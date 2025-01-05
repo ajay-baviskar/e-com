@@ -11,11 +11,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductController extends Controller
 {
-    // Create a new product with multiple images
     public function create(Request $request)
     {
         try {
-            // Validate the request
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'price' => 'required|numeric',
@@ -23,13 +21,11 @@ class ProductController extends Controller
                 'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            // Create the product
             $product = Product::create([
                 'name' => $validated['name'],
                 'price' => $validated['price'],
             ]);
 
-            // Store images
             foreach ($request->file('images') as $image) {
                 $path = $image->store('products', 'public');
                 ProductImage::create([
@@ -58,7 +54,6 @@ class ProductController extends Controller
         }
     }
 
-    // Get all products with their images
     public function index()
     {
         try {
@@ -77,7 +72,6 @@ class ProductController extends Controller
         }
     }
 
-    // Get a specific product by ID
     public function show($id)
     {
         try {
@@ -101,14 +95,11 @@ class ProductController extends Controller
         }
     }
 
-    // Update a product and its images
     public function update(Request $request, $id)
     {
         try {
-            // Find the product or throw a 404 error
             $product = Product::findOrFail($id);
 
-            // Validate the request
             $validated = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'price' => 'sometimes|numeric',
@@ -116,7 +107,6 @@ class ProductController extends Controller
                 'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            // Update product fields if provided
             if (isset($validated['name'])) {
                 $product->name = $validated['name'];
             }
@@ -125,11 +115,11 @@ class ProductController extends Controller
                 $product->price = $validated['price'];
             }
 
-            $product->save(); // Save updated product details
+            $product->save();
 
-            // Handle images
+
             if ($request->hasFile('images')) {
-                // Delete old images
+
                 foreach ($product->images as $image) {
                     if (Storage::exists('public/' . $image->image_path)) {
                         Storage::delete('public/' . $image->image_path);
@@ -137,7 +127,6 @@ class ProductController extends Controller
                     $image->delete();
                 }
 
-                // Store new images
                 foreach ($request->file('images') as $image) {
                     $path = $image->store('products', 'public');
                     ProductImage::create([
@@ -147,20 +136,17 @@ class ProductController extends Controller
                 }
             }
 
-            // Return success response
             return response()->json([
                 'status' => 'success',
                 'message' => 'Product updated successfully',
                 'product' => $product->load('images'), // Include updated images in response
             ]);
         } catch (ModelNotFoundException $e) {
-            // Handle product not found error
             return response()->json([
                 'status' => 'error',
                 'message' => 'Product not found',
             ], 404);
         } catch (\Exception $e) {
-            // Handle general exceptions
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to update product',
@@ -169,13 +155,11 @@ class ProductController extends Controller
         }
     }
 
-    // Delete a product and its images
     public function destroy($id)
     {
         try {
             $product = Product::findOrFail($id);
 
-            // Delete images
             foreach ($product->images as $image) {
                 if (Storage::exists('public/' . $image->image_path)) {
                     Storage::delete('public/' . $image->image_path);
@@ -183,7 +167,6 @@ class ProductController extends Controller
                 $image->delete();
             }
 
-            // Delete product
             $product->delete();
 
             return response()->json([

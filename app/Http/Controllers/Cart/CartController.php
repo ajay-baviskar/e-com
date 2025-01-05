@@ -13,13 +13,11 @@ class CartController extends Controller
     public function addToCart(Request $request)
     {
         try {
-            // Validate the incoming request
             $validated = $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer|min:1',
             ]);
 
-            // Get the authenticated user ID
             // $userId = Auth::id();
             $userId = 1;
             // if (!$userId) {
@@ -29,17 +27,14 @@ class CartController extends Controller
             //     ], 401);
             // }
 
-            // Check if the product is already in the cart
             $cartItem = CartItem::where('user_id', $userId)
                 ->where('product_id', $validated['product_id'])
                 ->first();
 
             if ($cartItem) {
-                // Update quantity if product already exists in the cart
                 $cartItem->quantity += $validated['quantity'];
                 $cartItem->save();
             } else {
-                // Create a new cart item
                 $cartItem = CartItem::create([
                     'product_id' => $validated['product_id'],
                     'quantity' => $validated['quantity'],
@@ -64,7 +59,6 @@ class CartController extends Controller
     public function viewCart()
     {
         try {
-            // Get the authenticated user ID
             // $userId = Auth::id();
 
             // if (!$userId) {
@@ -75,7 +69,6 @@ class CartController extends Controller
             // }
             $userId = 1;
 
-            // Fetch cart items with related product and images
             $cartItems = CartItem::with('product.images')
                 ->where('user_id', $userId)
                 ->get();
